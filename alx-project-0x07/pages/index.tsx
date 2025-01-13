@@ -1,8 +1,33 @@
-import React, { useState } from "react";
+import ImageCard from "@/components/common/ImageCard";
+import { ImageProps } from "@/interfaces";
+import { useState } from "react";
 
 const Home: React.FC = () => {
+  const [prompt, setPrompt] = useState<string>("");
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [generatedImages, setGeneratedImages] = useState<ImageProps[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const handleGenerateImage = async () => {
-    console.log("Generating Images");
+    setIsLoading(true);
+
+    const generatedImage = await fetchImageFromAPI(prompt);
+
+    setIsLoading(false);
+    setImageUrl(generatedImage.url);
+
+    setGeneratedImages((prevImages) => [
+      ...prevImages,
+      { imageUrl: generatedImage.url, prompt },
+    ]);
+  };
+
+  const fetchImageFromAPI = async (prompt: string) => {
+    return new Promise<{ url: string }>((resolve) => {
+      setTimeout(() => {
+        resolve({ url: `https://via.placeholder.com/150?text=${prompt}` });
+      }, 2000);
+    });
   };
 
   return (
@@ -16,6 +41,8 @@ const Home: React.FC = () => {
         <div className="w-full max-w-md">
           <input
             type="text"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
             placeholder="Enter your prompt here..."
             className="w-full p-3 border border-gray-300 rounded-lg mb-4"
           />
@@ -23,8 +50,27 @@ const Home: React.FC = () => {
             onClick={handleGenerateImage}
             className="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
           >
-            Generate Image
+            {isLoading ? "Loading..." : "Generate Image"}
           </button>
+        </div>
+
+        {imageUrl && (
+          <ImageCard
+            action={() => setImageUrl(imageUrl)}
+            imageUrl={imageUrl}
+            prompt={prompt}
+          />
+        )}
+
+        <div className="mt-8">
+          {generatedImages.map((image, index) => (
+            <ImageCard
+              key={index}
+              action={() => setImageUrl(image.imageUrl)}
+              imageUrl={image.imageUrl}
+              prompt={image.prompt}
+            />
+          ))}
         </div>
       </div>
     </div>
